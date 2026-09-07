@@ -1,0 +1,44 @@
+# Version control
+.git
+.gitignore
+
+# Node
+node_modules
+npm-debug.log
+yarn-error.log
+dist
+build
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env
+venv
+.venv
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Environments
+.env
+.env.*
+
+# Docker
+docker-compose.yml
+.dockerignore
+Dockerfile
+
+# Testing and coverage
+.coverage
+htmlcov
+.tox
+.pytest_cache
+
+# OS/Editor
+.DS_Store
+.idea
+.vscode
+*.swp
+*.swo
