@@ -19,11 +19,24 @@ StockMind is a modern, AI-powered inventory and supply chain management platform
 - Python (3.10+)
 - PostgreSQL (running locally or via Docker)
 
-### 1. Database Setup
-Ensure PostgreSQL is running and create a database for the project:
+### 1. Infrastructure Setup (Docker Method - Recommended)
+The easiest way to get the required databases (PostgreSQL and Redis) running is by using Docker Compose.
+
+Make sure Docker is installed and running, then from the root directory run:
 ```bash
-createdb stockmind
+docker-compose up -d
 ```
+*This will automatically spin up PostgreSQL and Redis in the background with the correct credentials and database name (`stockmind_db`) expected by the backend.*
+
+If you prefer not to use Docker, you must manually install PostgreSQL and set up the database and user. Open your PostgreSQL terminal (`psql`) and run:
+```sql
+CREATE DATABASE stockmind_db;
+CREATE USER stockmind WITH ENCRYPTED PASSWORD 'stockmindpassword';
+GRANT ALL PRIVILEGES ON DATABASE stockmind_db TO stockmind;
+\c stockmind_db
+GRANT ALL ON SCHEMA public TO stockmind;
+```
+*(If you choose a different username, password, or database name, be sure to update the `DATABASE_URL` in your `.env` file!)*
 
 ### 2. Backend Setup
 Navigate to the `backend` directory, create a virtual environment, and install dependencies:
@@ -38,12 +51,25 @@ Create your environment variables by copying the example file:
 ```bash
 cp .env.example .env
 ```
-*(Update `DATABASE_URL` and `GEMINI_API_KEY` inside `.env` as needed).*
+
+**Important:** Open the newly created `.env` file and verify or update the following values:
+- `DATABASE_URL`: By default, this is set to match the Docker setup (`postgresql+asyncpg://stockmind:stockmindpassword@localhost:5432/stockmind_db`). If you used the manual setup with different credentials, update this URL.
+- `GEMINI_API_KEY`: You **must** provide a valid Google Gemini API key here for the AI Assistant features to work.
+- `SECRET_KEY`: Used for JWT authentication. (Fine to leave as default for local testing, but *must* be changed for production deployments).
+
+**Initialize Database Tables:**
+Run the Alembic migrations to generate the database schema:
+```bash
+alembic upgrade head
+```
 
 Run the backend development server:
 ```bash
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
+
+*(Optional) Seed the database with dummy data:*
+*After registering a user on the frontend (e.g., `test2@test.com`), you can populate dummy suppliers and products by running `python seed.py`.*
 
 ### 3. Frontend Setup
 Navigate to the `frontend` directory and install dependencies:
