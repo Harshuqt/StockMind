@@ -1,6 +1,7 @@
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
+    CORS_ORIGINS: str = "http://localhost:5173"
     PROJECT_NAME: str = "StockMind"
     API_V1_STR: str = "/api/v1"
     
