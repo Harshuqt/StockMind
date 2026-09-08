@@ -87,7 +87,7 @@ cp .env.example .env
 # Run the backend in a container mapped to the host network
 docker run -d \
   --name stockmind-backend \
-  --network host \
+  -p 8000:8000 \
   -v $(pwd):/app \
   -w /app \
   python:3.10-slim \
