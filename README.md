@@ -2,6 +2,34 @@
 
 StockMind is a modern, AI-powered inventory and supply chain management platform designed for small-to-medium businesses. It bridges the gap between traditional warehouse ledgers and modern predictive analytics, ensuring you never run out of your best-selling products.
 
+## 🏗️ Architecture
+
+The application follows a standard modern web architecture without unnecessary complexity:
+
+```mermaid
+flowchart TD
+    User([User / Browser])
+    
+    subgraph Frontend
+        React[React SPA\nVite + Tailwind]
+    end
+    
+    subgraph Backend
+        FastAPI[FastAPI\nREST API]
+    end
+    
+    subgraph Storage & Services
+        Postgres[(PostgreSQL\nstockmind_db)]
+        Gemini[Google Gemini API]
+    end
+    
+    User -->|HTTP/JSON| React
+    React -->|REST Calls| FastAPI
+    FastAPI -->|asyncpg / SQLAlchemy| Postgres
+    FastAPI -->|gRPC / REST| Gemini
+```
+*(Note: Redis is completely unused by the application and has been removed from the environment configuration to simplify deployments).*
+
 ## ✨ Features
 
 - **Full-Stack SaaS Architecture:** Built with React, FastAPI, and PostgreSQL. Features multi-tenant organization boundaries securely separating data.
@@ -9,6 +37,14 @@ StockMind is a modern, AI-powered inventory and supply chain management platform
 - **Inventory Ledger:** Immutable transaction logs (`InventoryTransaction`) tracking every stock movement (`STOCK_IN`, `STOCK_OUT`, `SET`).
 - **Purchase & Sales Orders:** Manage inbound stock from suppliers and outbound shipments to customers. Includes an interactive "Auto-Receive" PO simulator.
 - **Gemini AI Assistant:** Connects directly to Google's Gemini LLM to analyze your catalog, identify low-stock risks, and autonomously draft multi-product Purchase Orders.
+
+### 🤖 How the Gemini AI Assistant Works
+
+The AI functionality in StockMind evaluates your live inventory and historical data to prevent stockouts:
+* **Catalog & Inventory Analysis:** Gemini reads your entire product catalog (current stock, reorder points, sales volume) to understand your business health.
+* **Low-Stock Risk Identification:** It identifies items that are approaching or below their reorder thresholds.
+* **Purchase-Order Drafting:** It intelligently groups needed items by supplier, calculates optimal reorder quantities, and generates draft Purchase Orders.
+* **User Review:** The AI does *not* automatically submit orders. All AI-generated drafts are presented for human review and approval before they are officially created in the system.
 
 ---
 
@@ -20,13 +56,13 @@ StockMind is a modern, AI-powered inventory and supply chain management platform
 - PostgreSQL (running locally or via Docker)
 
 ### 1. Infrastructure Setup (Docker Method - Recommended)
-The easiest way to get the required databases (PostgreSQL and Redis) running is by using Docker Compose.
+The easiest way to get PostgreSQL running is by using Docker Compose.
 
 Make sure Docker is installed and running, then from the root directory run:
 ```bash
 docker-compose up -d
 ```
-*This will automatically spin up PostgreSQL and Redis in the background with the correct credentials and database name (`stockmind_db`) expected by the backend.*
+*This will automatically spin up PostgreSQL in the background with the correct credentials (user: `stockmind`, password: `stockmindpassword`) and database name (`stockmind_db`) expected by the backend.*
 
 If you prefer not to use Docker, you must manually install PostgreSQL and set up the database and user. Open your PostgreSQL terminal (`psql`) and run:
 ```sql
@@ -90,7 +126,15 @@ cd frontend
 npm run dev
 ```
 
-Once both servers are running, visit [http://localhost:5173](http://localhost:5173) in your browser to view the application!
+**Accessing the Application:**
+- Web App: [http://localhost:5173](http://localhost:5173)
+- FastAPI Documentation (Swagger UI): [http://localhost:8000/docs](http://localhost:8000/docs)
+
+### 5. Running Tests
+To run the backend test suite, make sure you are in the `backend` directory with your virtual environment activated, then run:
+```bash
+pytest
+```
 
 ---
 
