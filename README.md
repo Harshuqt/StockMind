@@ -51,7 +51,7 @@ The AI functionality in StockMind evaluates your live inventory and historical d
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js (v18+)
+- Node.js (v20+)
 - Python (3.10+)
 - PostgreSQL (running locally or via Docker)
 
