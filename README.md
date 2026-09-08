@@ -63,11 +63,6 @@ Run the Alembic migrations to generate the database schema:
 alembic upgrade head
 ```
 
-Run the backend development server:
-```bash
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-```
-
 *(Optional) Seed the database with dummy data:*
 *After registering a user on the frontend (e.g., `test2@test.com`), you can populate dummy suppliers and products by running `python seed.py`.*
 
@@ -78,12 +73,24 @@ cd frontend
 npm install
 ```
 
-Start the Vite development server:
+### 4. Running the Application
+
+To run the application locally, you will need two separate terminal windows (one for the backend and one for the frontend).
+
+**Terminal 1: Start the Backend**
 ```bash
+cd backend
+source venv/bin/activate
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+**Terminal 2: Start the Frontend**
+```bash
+cd frontend
 npm run dev
 ```
 
-Visit `http://localhost:5173` to view the application.
+Once both servers are running, visit [http://localhost:5173](http://localhost:5173) in your browser to view the application!
 
 ---
 
