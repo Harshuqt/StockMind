@@ -92,19 +92,19 @@ cp .env.example .env
 ### 3. Server Storage Requirements
 
 StockMind can be deployed in two different ways depending on the size of your server (e.g. AWS EC2).
-- **Ubuntu OS + Basic Tools:** Takes up ~4.5GB to 5.5GB of space.
-- **Backend + Database (Docker):** Takes up ~500MB of space.
-- **Frontend (Docker):** Takes up ~1.5GB to 2GB of space (due to Node modules and Docker layer duplication).
+- **Ubuntu OS + Basic Tools:** ~4.3 GB
+- **Backend + Database (Docker):** ~500 MB
+- **Frontend (Docker Image + Cache + Volumes):** ~2.9 GB
 
 **Total Storage Recommendations:**
-- **12GB+ Storage (Recommended):** Use **Option A** (Full Docker).
-- **8GB Storage (Free Tier Limit):** Use **Option B** (Hybrid). The full Docker build will crash with `no space left on device` on an 8GB drive.
+- **10GB+ Storage (Recommended):** Use **Option A** (Full Docker). The total OS + Docker footprint will be around ~7.7 GB, leaving you a few gigabytes of breathing room.
+- **8GB Storage (Free Tier Limit):** Use **Option B** (Hybrid). The full Docker build will crash with `no space left on device` on an 8GB drive due to temporary build cache spikes.
 
 ---
 
 ### 4. Running the Application (Choose Option A or Option B)
 
-#### Option A: Full Docker Deployment (Requires 12GB+ Storage)
+#### Option A: Full Docker Deployment (Requires 10GB+ Storage)
 
 This is the easiest method. It spins up the PostgreSQL database, FastAPI backend, and React frontend all at once inside Docker containers.
 
