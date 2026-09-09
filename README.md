@@ -89,29 +89,29 @@ cp .env.example .env
 - `SECRET_KEY`: Used for JWT authentication.
 - `CORS_ORIGINS`: If running remotely (e.g. on EC2), add your public IP (e.g., `CORS_ORIGINS=http://<YOUR_IP>:5173,http://localhost:5173`).
 
-### 3. Running the Application (Docker Compose - Recommended)
+### 3. Running the Application (Hybrid Deployment)
 
-The entire StockMind stack (PostgreSQL, Backend API, and Frontend Vite server) is fully containerized. To spin everything up automatically in the background:
+Because the Vite/React frontend requires significant disk space to build in Docker, we use a hybrid approach to accommodate standard cloud free-tier servers (like 8GB EC2 instances): the database and backend run in Docker, while the frontend runs natively.
 
+**Step 1: Build and start the Backend & Database**
 ```bash
-# Return to the root directory
-cd ..
-
-# If running on a remote server like EC2, export your public IP for the frontend to use:
-# export VITE_API_URL="http://<YOUR_EC2_IP>:8000/api/v1"
-
-# Build and start all services
+# From the root of the project
 docker-compose up --build -d
 ```
+*(The backend is now running at `http://localhost:8000/docs`)*
 
-That's it! The services will be available at:
-- **Web App (Frontend):** [http://localhost:5173](http://localhost:5173) (or your EC2 IP)
-- **FastAPI Documentation (Swagger UI):** [http://localhost:8000/docs](http://localhost:8000/docs) (or your EC2 IP)
-
-To view the live logs of your application:
+**Step 2: Install and start the Frontend**
 ```bash
-docker-compose logs -f
+cd frontend
+npm install
+
+# If running remotely on a server like EC2, export your public IP first:
+# export VITE_API_URL="http://<YOUR_EC2_IP>:8000/api/v1"
+
+# Run the frontend server (accessible at http://localhost:5173)
+npm run dev -- --host 0.0.0.0
 ```
+*(Tip: To keep the frontend running in the background on a server after you disconnect via SSH, use `nohup npm run dev -- --host 0.0.0.0 > my-frontend.log 2>&1 &`)*
 
 ### 4. Running Tests
 To run the backend test suite, you can execute `pytest` directly inside your running backend container:

@@ -21,27 +21,12 @@ services:
     env_file:
       - ./backend/.env
     environment:
-      # Override the DB URL to point to the docker-compose 'db' service instead of localhost
       - DATABASE_URL=postgresql+asyncpg://stockmind:stockmindpassword@db:5432/stockmind_db
     depends_on:
       - db
     restart: unless-stopped
     volumes:
       - ./backend:/app
-
-  frontend:
-    build:
-      context: ./frontend
-    ports:
-      - "5173:5173"
-    environment:
-      - VITE_API_URL=${VITE_API_URL:-http://localhost:8000/api/v1}
-    depends_on:
-      - backend
-    restart: unless-stopped
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
 
 volumes:
   postgres_data:
