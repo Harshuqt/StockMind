@@ -45,10 +45,23 @@ async def register(user_in: RegisterRequest, db: AsyncSession = Depends(get_db))
         role = Role(name="Admin", permissions={"all": True})
         db.add(role)
         
-    await db.flush() # flush to get ids
+    await db.flush() # flush to get org.id and user.id
     
     membership = OrganizationMember(user_id=user.id, organization_id=org.id, role_id=role.id)
     db.add(membership)
+    
+    # Auto-seed defaults for the new organization so the UI dropdowns work out-of-the-box
+    from app.models.warehouse import Warehouse
+    from app.models.customer import Customer
+    from app.models.supplier import Supplier
+    
+    default_warehouse = Warehouse(name="Main Warehouse", organization_id=org.id)
+    default_customer = Customer(name="Walk-in Customer", email="walkin@example.com", organization_id=org.id)
+    default_supplier = Supplier(company_name="General Supplier", contact_name="Default", email="supplier@example.com", organization_id=org.id)
+    
+    db.add(default_warehouse)
+    db.add(default_customer)
+    db.add(default_supplier)
     
     await db.commit()
     await db.refresh(user)
