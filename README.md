@@ -74,9 +74,9 @@ GRANT ALL ON SCHEMA public TO stockmind;
 ```
 *(If you choose a different username, password, or database name, be sure to update the `DATABASE_URL` in your `.env` file!)*
 
-### 2. Backend Setup (Docker Method - Recommended)
+### 2. Environment Setup
 
-For modern Linux distributions (like Ubuntu 26.04) or any environment where Python 3.10 isn't the default, running the backend in Docker is highly recommended to avoid dependency compilation errors.
+Before starting the application, you need to configure your environment variables.
 
 Navigate to the `backend` directory and create your environment file:
 ```bash
@@ -84,54 +84,39 @@ cd backend
 cp .env.example .env
 ```
 
-**Important:** Open the newly created `.env` file and configure:
-- `DATABASE_URL`: Ensure this matches the Docker Compose setup (`postgresql+asyncpg://stockmind:stockmindpassword@localhost:5432/stockmind_db`).
+**Important:** Open the newly created `backend/.env` file and configure:
 - `GEMINI_API_KEY`: Provide a valid Google Gemini API key here for AI features.
 - `SECRET_KEY`: Used for JWT authentication.
 - `CORS_ORIGINS`: If running remotely (e.g. on EC2), add your public IP (e.g., `CORS_ORIGINS=http://<YOUR_IP>:5173,http://localhost:5173`).
 
-**Run the backend container:**
+### 3. Running the Application (Docker Compose - Recommended)
+
+The entire StockMind stack (PostgreSQL, Backend API, and Frontend Vite server) is fully containerized. To spin everything up automatically in the background:
+
 ```bash
-docker run -d \
-  --name stockmind-backend \
-  --network host \
-  -v $(pwd):/app \
-  -w /app \
-  python:3.10-slim \
-  bash -c "pip install -r requirements.txt && alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
-```
-*(This command mounts your local code into the container, installs requirements, runs database migrations, and boots the API on port 8000).*
+# Return to the root directory
+cd ..
 
-### 3. Frontend Setup
-Navigate to the `frontend` directory and install dependencies. Note: If you encounter permission issues later, avoid using `sudo` here.
-```bash
-cd frontend
-npm install
-```
-
-### 4. Running the Application
-
-To run the application locally or on a remote server, start your containers and frontend.
-
-**Step 1: Ensure Backend & DB are running**
-```bash
-docker start stockmind-db-1
-docker start stockmind-backend
-```
-
-**Step 2: Start the Frontend**
-```bash
-cd frontend
-# If running remotely, export your API URL before starting:
+# If running on a remote server like EC2, export your public IP for the frontend to use:
 # export VITE_API_URL="http://<YOUR_EC2_IP>:8000/api/v1"
-npm run dev -- --host 0.0.0.0
-```
-*(Tip: To run the frontend in the background on a server, use `nohup npm run dev -- --host 0.0.0.0 > dev.log 2>&1 &`)*
 
-### 5. Running Tests
+# Build and start all services
+docker-compose up --build -d
+```
+
+That's it! The services will be available at:
+- **Web App (Frontend):** [http://localhost:5173](http://localhost:5173) (or your EC2 IP)
+- **FastAPI Documentation (Swagger UI):** [http://localhost:8000/docs](http://localhost:8000/docs) (or your EC2 IP)
+
+To view the live logs of your application:
+```bash
+docker-compose logs -f
+```
+
+### 4. Running Tests
 To run the backend test suite, you can execute `pytest` directly inside your running backend container:
 ```bash
-docker exec -it stockmind-backend pytest
+docker-compose exec backend pytest
 ```
 
 ---
