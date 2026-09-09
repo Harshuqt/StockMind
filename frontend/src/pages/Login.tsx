@@ -41,7 +41,12 @@ export default function Login() {
       setAuth(token, user, organizations.length > 0 ? organizations[0].id : '')
       navigate('/')
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Login failed')
+      const detail = err.response?.data?.detail;
+      if (Array.isArray(detail)) {
+        setError(detail[0].msg || 'Validation error');
+      } else {
+        setError(detail || 'Login failed');
+      }
     }
   }
 
