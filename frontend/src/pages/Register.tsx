@@ -22,7 +22,12 @@ export default function Register() {
       })
       navigate('/login')
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Registration failed')
+      const detail = err.response?.data?.detail;
+      if (Array.isArray(detail)) {
+        setError(detail[0].msg || 'Validation error');
+      } else {
+        setError(detail || 'Registration failed');
+      }
     }
   }
 
