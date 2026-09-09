@@ -129,9 +129,9 @@ npm run dev -- --host 0.0.0.0
 *(Tip: To run the frontend in the background on a server, use `nohup npm run dev -- --host 0.0.0.0 > dev.log 2>&1 &`)*
 
 ### 5. Running Tests
-To run the backend test suite, make sure you are in the `backend` directory with your virtual environment activated, then run:
+To run the backend test suite, you can execute `pytest` directly inside your running backend container:
 ```bash
-pytest
+docker exec -it stockmind-backend pytest
 ```
 
 ---
