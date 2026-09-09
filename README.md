@@ -53,28 +53,10 @@ The AI functionality in StockMind evaluates your live inventory and historical d
 ### Prerequisites
 - Node.js (v20+)
 - Python (3.10+)
-- PostgreSQL (running locally or via Docker)
+- Docker and Docker Compose installed
+- Git
 
-### 1. Infrastructure Setup (Docker Method - Recommended)
-The easiest way to get PostgreSQL running is by using Docker Compose.
-
-Make sure Docker is installed and running, then from the root directory run:
-```bash
-docker-compose up -d
-```
-*This will automatically spin up PostgreSQL in the background with the correct credentials (user: `stockmind`, password: `stockmindpassword`) and database name (`stockmind_db`) expected by the backend.*
-
-If you prefer not to use Docker, you must manually install PostgreSQL and set up the database and user. Open your PostgreSQL terminal (`psql`) and run:
-```sql
-CREATE DATABASE stockmind_db;
-CREATE USER stockmind WITH ENCRYPTED PASSWORD 'stockmindpassword';
-GRANT ALL PRIVILEGES ON DATABASE stockmind_db TO stockmind;
-\c stockmind_db
-GRANT ALL ON SCHEMA public TO stockmind;
-```
-*(If you choose a different username, password, or database name, be sure to update the `DATABASE_URL` in your `.env` file!)*
-
-### 2. Environment Setup
+### 1. Environment Setup
 
 Before starting the application, you need to configure your environment variables.
 
@@ -86,61 +68,58 @@ cp .env.example .env
 
 **Important:** Open the newly created `backend/.env` file and configure:
 - `GEMINI_API_KEY`: Provide a valid Google Gemini API key here for AI features.
-- `SECRET_KEY`: Used for JWT authentication.
-- `CORS_ORIGINS`: If running remotely (e.g. on EC2), add your public IP (e.g., `CORS_ORIGINS=http://<YOUR_IP>:5173,http://localhost:5173`).
+- `SECRET_KEY`: Used for JWT authentication (can be any random string).
+- `CORS_ORIGINS`: If running remotely (e.g. on AWS EC2), add your server's public IP address (e.g., `CORS_ORIGINS="http://<YOUR_EC2_IP>:5173,http://localhost:5173"`).
 
-### 3. Server Storage Requirements
+### 2. Choose Your Deployment Method
 
 StockMind can be deployed in two different ways depending on the size of your server (e.g. AWS EC2).
-- **Ubuntu OS + Basic Tools:** ~4.3 GB
-- **Backend + Database (Docker):** ~500 MB
-- **Frontend (Docker Image + Cache + Volumes):** ~2.9 GB
 
-**Total Storage Recommendations:**
 - **10GB+ Storage (Recommended):** Use **Option A** (Full Docker). The total OS + Docker footprint will be around ~7.7 GB, leaving you a few gigabytes of breathing room.
 - **8GB Storage (Free Tier Limit):** Use **Option B** (Hybrid). The full Docker build will crash with `no space left on device` on an 8GB drive due to temporary build cache spikes.
 
 ---
 
-### 4. Running the Application (Choose Option A or Option B)
-
-#### Option A: Full Docker Deployment (Requires 10GB+ Storage)
+### Option A: Full Docker Deployment (Requires 10GB+ Storage)
 
 This is the easiest method. It spins up the PostgreSQL database, FastAPI backend, and React frontend all at once inside Docker containers.
 
 ```bash
-# Return to the root directory
-cd ..
+# From the root directory of the project:
+# 1. Export your public IP for the frontend to use (use localhost if testing locally)
+export VITE_API_URL="http://<YOUR_EC2_IP>:8000/api/v1"
 
-# If running on a remote server like EC2, export your public IP for the frontend to use:
-# export VITE_API_URL="http://<YOUR_EC2_IP>:8000/api/v1"
-
-# Build and start all services
-docker-compose up --build -d
+# 2. Build and start all services
+docker compose up --build -d
 ```
 That's it! The services will be available at:
-- **Web App (Frontend):** [http://localhost:5173](http://localhost:5173) (or your EC2 IP)
-- **FastAPI Documentation:** [http://localhost:8000/docs](http://localhost:8000/docs) (or your EC2 IP)
+- **Web App (Frontend):** [http://<YOUR_EC2_IP>:5173](http://<YOUR_EC2_IP>:5173) 
+- **FastAPI Documentation:** [http://<YOUR_EC2_IP>:8000/docs](http://<YOUR_EC2_IP>:8000/docs) 
 
-#### Option B: Hybrid Deployment (For 8GB/10GB Servers)
+---
+
+### Option B: Hybrid Deployment (For 8GB/10GB Servers)
 
 Because the Vite/React frontend requires significant disk space to build in Docker, you can run the database and backend in Docker, but run the frontend natively to save space.
 
-**Step 1: Build and start ONLY the Backend & Database**
+**Step 1: Start ONLY the Backend & Database**
 ```bash
-# Specifying 'db' and 'backend' skips the frontend Docker build
-docker-compose up --build -d db backend
+# From the root directory, specifying 'db' and 'backend' skips the frontend Docker build
+docker compose up --build -d db backend
 ```
 
 **Step 2: Install and start the Frontend Natively**
 ```bash
+# Go into the frontend folder
 cd frontend
+
+# Install Node modules
 npm install
 
-# If running remotely on a server like EC2, export your public IP first:
-# export VITE_API_URL="http://<YOUR_EC2_IP>:8000/api/v1"
+# Export your public IP (use localhost if testing locally)
+export VITE_API_URL="http://<YOUR_EC2_IP>:8000/api/v1"
 
-# Run the frontend server natively (accessible at http://localhost:5173)
+# Run the frontend server natively
 npm run dev -- --host 0.0.0.0
 ```
 *(Tip: To keep the frontend running in the background on a server after you disconnect via SSH, use `nohup npm run dev -- --host 0.0.0.0 > my-frontend.log 2>&1 &`)*
