@@ -89,18 +89,50 @@ cp .env.example .env
 - `SECRET_KEY`: Used for JWT authentication.
 - `CORS_ORIGINS`: If running remotely (e.g. on EC2), add your public IP (e.g., `CORS_ORIGINS=http://<YOUR_IP>:5173,http://localhost:5173`).
 
-### 3. Running the Application (Hybrid Deployment)
+### 3. Server Storage Requirements
 
-Because the Vite/React frontend requires significant disk space to build in Docker, we use a hybrid approach to accommodate standard cloud free-tier servers (like 8GB EC2 instances): the database and backend run in Docker, while the frontend runs natively.
+StockMind can be deployed in two different ways depending on the size of your server (e.g. AWS EC2).
+- **Ubuntu OS + Basic Tools:** Takes up ~4.5GB to 5.5GB of space.
+- **Backend + Database (Docker):** Takes up ~500MB of space.
+- **Frontend (Docker):** Takes up ~1.5GB to 2GB of space (due to Node modules and Docker layer duplication).
 
-**Step 1: Build and start the Backend & Database**
+**Total Storage Recommendations:**
+- **12GB+ Storage (Recommended):** Use **Option A** (Full Docker).
+- **8GB Storage (Free Tier Limit):** Use **Option B** (Hybrid). The full Docker build will crash with `no space left on device` on an 8GB drive.
+
+---
+
+### 4. Running the Application (Choose Option A or Option B)
+
+#### Option A: Full Docker Deployment (Requires 12GB+ Storage)
+
+This is the easiest method. It spins up the PostgreSQL database, FastAPI backend, and React frontend all at once inside Docker containers.
+
 ```bash
-# From the root of the project
+# Return to the root directory
+cd ..
+
+# If running on a remote server like EC2, export your public IP for the frontend to use:
+# export VITE_API_URL="http://<YOUR_EC2_IP>:8000/api/v1"
+
+# Build and start all services
 docker-compose up --build -d
 ```
-*(The backend is now running at `http://localhost:8000/docs`)*
+That's it! The services will be available at:
+- **Web App (Frontend):** [http://localhost:5173](http://localhost:5173) (or your EC2 IP)
+- **FastAPI Documentation:** [http://localhost:8000/docs](http://localhost:8000/docs) (or your EC2 IP)
 
-**Step 2: Install and start the Frontend**
+#### Option B: Hybrid Deployment (For 8GB/10GB Servers)
+
+Because the Vite/React frontend requires significant disk space to build in Docker, you can run the database and backend in Docker, but run the frontend natively to save space.
+
+**Step 1: Build and start ONLY the Backend & Database**
+```bash
+# Specifying 'db' and 'backend' skips the frontend Docker build
+docker-compose up --build -d db backend
+```
+
+**Step 2: Install and start the Frontend Natively**
 ```bash
 cd frontend
 npm install
@@ -108,12 +140,12 @@ npm install
 # If running remotely on a server like EC2, export your public IP first:
 # export VITE_API_URL="http://<YOUR_EC2_IP>:8000/api/v1"
 
-# Run the frontend server (accessible at http://localhost:5173)
+# Run the frontend server natively (accessible at http://localhost:5173)
 npm run dev -- --host 0.0.0.0
 ```
 *(Tip: To keep the frontend running in the background on a server after you disconnect via SSH, use `nohup npm run dev -- --host 0.0.0.0 > my-frontend.log 2>&1 &`)*
 
-### 4. Running Tests
+### 5. Running Tests
 To run the backend test suite, you can execute `pytest` directly inside your running backend container:
 ```bash
 docker-compose exec backend pytest
