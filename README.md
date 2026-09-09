@@ -70,6 +70,7 @@ cp .env.example .env
 - `GEMINI_API_KEY`: Provide a valid Google Gemini API key here for AI features.
 - `SECRET_KEY`: Used for JWT authentication (can be any random string).
 - `CORS_ORIGINS`: If running remotely (e.g. on AWS EC2), add your server's public IP address (e.g., `CORS_ORIGINS="http://<YOUR_EC2_IP>:5173,http://localhost:5173"`).
+- `VITE_API_URL`: This tells the React frontend where to find the API. If running remotely, add your server's public IP (e.g., `VITE_API_URL="http://<YOUR_EC2_IP>:8000/api/v1"`).
 
 ### 2. Choose Your Deployment Method
 
@@ -85,11 +86,7 @@ StockMind can be deployed in two different ways depending on the size of your se
 This is the easiest method. It spins up the PostgreSQL database, FastAPI backend, and React frontend all at once inside Docker containers.
 
 ```bash
-# From the root directory of the project:
-# 1. Export your public IP for the frontend to use (use localhost if testing locally)
-export VITE_API_URL="http://<YOUR_EC2_IP>:8000/api/v1"
-
-# 2. Build and start all services
+# From the root directory of the project, build and start all services
 docker compose up --build -d
 ```
 That's it! The services will be available at:
@@ -115,9 +112,6 @@ cd frontend
 
 # Install Node modules
 npm install
-
-# Export your public IP (use localhost if testing locally)
-export VITE_API_URL="http://<YOUR_EC2_IP>:8000/api/v1"
 
 # Run the frontend server natively
 npm run dev -- --host 0.0.0.0
